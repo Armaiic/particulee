@@ -10,6 +10,6 @@ const height = (canvas.height = window.innerHeight);
 ctx.fillStyle = "#000000";
 ctx.fillRect(0, 0, width, height);
 
-ctx.fillStyle = "#ffffff";
-ctx.arc(width / 8, height / 100, 45, 0, Math.PI * 2);
+ctx.fillStyle = "#ff0000";
+ctx.arc(width / 8, height / 40, 30, 0, Math.PI * 2);
 ctx.fill();
