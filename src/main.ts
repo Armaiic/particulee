@@ -1,4 +1,3 @@
-import { makedot } from "./makedot";
 import "./style.css";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#particules-canvas")!;
@@ -6,16 +5,38 @@ const ctx = canvas.getContext("2d")!;
 const width = (canvas.width = window.innerWidth);
 const height = (canvas.height = window.innerHeight);
 const circleRadius = 50; // Adjust the size of the circle here*
+export const blockingRadius =  circleRadius*2
 export const savedistance = circleRadius * 2; // add a distance minimum betweeen both dots
-let mouseX = 0; //
-let mouseY = 0; //
+export let mouseX = 0; 
+export let mouseY = 0; 
 
 // put the  position value of mouse in variable
 canvas.addEventListener('mousemove', (e) => {
   mouseX = e.clientX;
   mouseY = e.clientY;
 }); 
+function makedot() {
+  const randomCoordinates = getRandomCoordinates();
+  const { x, y } = randomCoordinates;
+  const { vx, vy } = getRandomVelocity();
+  const color = getRandomHexColor(); // Get a random color here
+  let isok = true;
+  
+  const distanceToCursor = Math.sqrt((x - mouseX) ** 2 + (y - mouseY) ** 2);
 
+  for (const dot of dots) {
+    const distance = Math.sqrt((x - dot.x) ** 2 + (y - dot.y) ** 2);
+    if (distance < savedistance  || distanceToCursor < blockingRadius ) {
+      isok = false;
+      break;
+    }
+  }
+  if (isok) {
+
+    dots.push({ x, y, vx, vy, color });
+
+  }
+}
 // Create an array to store the dots and their positions
 export const dots: { x: number; y: number; vx: number; vy: number;color: string  }[] = [];
 
