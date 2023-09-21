@@ -1,23 +1,35 @@
+import { makedot } from "./makedot";
 import "./style.css";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#particules-canvas")!;
 const ctx = canvas.getContext("2d")!;
 const width = (canvas.width = window.innerWidth);
 const height = (canvas.height = window.innerHeight);
-const circleRadius = 50; // Adjust the size of the circle here
+const circleRadius = 50; // Adjust the size of the circle here*
+export const savedistance = circleRadius * 2; // add a distance minimum betweeen both dots
+let mouseX = 0; //
+let mouseY = 0; //
+
+// put the  position value of mouse in variable
+canvas.addEventListener('mousemove', (e) => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+}); 
 
 // Create an array to store the dots and their positions
-const dots: { x: number; y: number; vx: number; vy: number;couleur: string  }[] = [];
+export const dots: { x: number; y: number; vx: number; vy: number;color: string  }[] = [];
 
 // Randomly generate x and y values within the specified range
-function getRandomCoordinates() {
-  const x = Math.random() * width;
-  const y = Math.random() * height;
+export function getRandomCoordinates() {
+  const x = Math.random() * width*2;
+  const y = Math.random() * height*2;
   return { x, y };
 }
 
-function getRandomVelocity() {
-  const minSpeed = 1;
+// add a velocity random to the dots make by makedot 
+export function getRandomVelocity() {
+  // i put speed minimal and maximal manually
+  const minSpeed = 1;  
   const maxSpeed = 4;
   const vx =
     (Math.random() * (maxSpeed - minSpeed) + minSpeed) *
@@ -29,22 +41,13 @@ function getRandomVelocity() {
 }
 
 // Function to generate a random hex color
-function getRandomHexColor(): string {
+export function getRandomHexColor(): string {
   var randomcolor = "#";
   var letters = "0123456789ABCDEF";
   for (var i = 0; i < 6; i++) {
     randomcolor += letters[Math.floor(Math.random() * 16)];
   }
   return randomcolor;
-}
-
-// Updated makedot function to create and store dots
-function makedot() {
-  const randomCoordinates = getRandomCoordinates();
-  const { x, y } = randomCoordinates;
-  const { vx, vy } = getRandomVelocity();
-  const couleur = getRandomHexColor(); // Get a random color here
-  dots.push({ x, y, vx, vy, couleur });
 }
 
 // Function to move the dots 
@@ -77,13 +80,21 @@ function moveDots() {
 
   // Draw each dot
   dots.forEach((dot) => {
-    ctx.fillStyle = dot.couleur; // Set the color from dot object
+    ctx.fillStyle = dot.color; // Set the color from dot object
     ctx.beginPath();
     ctx.arc(dot.x, dot.y, circleRadius, 0, Math.PI * 2);
     ctx.fill();
     ctx.closePath();
   });
 }
+
+
+
+
+
+//function detectioncollision() {
+
+
 
 // Start moving dots with setInterval
 setInterval(moveDots, 1000 / 60); // 60 FPS
