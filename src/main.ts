@@ -123,7 +123,7 @@ function moveDots() {
   });
 
   // Add new dots if the number of dots is below a certain threshold
-  if (dots.length < 10) {
+  if (dots.length < 1000) {
     makedot(); // Create a new dot
   }
 
