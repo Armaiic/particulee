@@ -18,7 +18,14 @@ let mouseX = 0; // Horizontal position of the mouse
 canvas.addEventListener('mousemove', (e) => {
   mouseX = e.clientX;
   mouseY = e.clientY;
+  
+
 });
+
+function calculateDistance(x1: number, y1: number, x2: number, y2: number): number {
+  return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
+}
+
 
 // Function to create a new dot on the canvas
 function makedot() {
@@ -33,6 +40,7 @@ function makedot() {
   const color = getRandomHexColor();
 
   let isok = true;
+  
 
   // Calculate the distance from the dot to the cursor 
   const distanceToCursor = Math.sqrt((x - mouseX) ** 2 + (y - mouseY) ** 2);
@@ -106,7 +114,7 @@ function moveDots() {
     dot.y += dot.vy;
 
     // Check if the dot is outside the canvas boundaries and reverse its velocity if needed
-    if (dot.x - circleRadius < 0 || dot.x + circleRadius> width) {
+    if (dot.x - circleRadius < 0 || dot.x + circleRadius> width ) {
       dot.vx *= -1; // Reverse horizontal velocity to bounce off walls
       dot.color = getRandomHexColor(); // Change the dot's color when it hits the wall
       
@@ -120,7 +128,23 @@ function moveDots() {
     if (dot.x < 0 || dot.x > width || dot.y < 0 || dot.y > height) {
       dots.splice(index, 1); // Remove the dot from the array
     }
-  });
+    const distanceToCursor = calculateDistance(dot.x, dot.y, mouseX, mouseY);
+      // Check if the dot is within the circle around the cursor
+   
+   
+      if (distanceToCursor < circleRadius + blockingRadius) {
+      // Calculate the angle between the dot and the cursor
+      const angle = Math.atan2(dot.y - mouseY, dot.x - mouseX);
+       // Calculate the amount to push the dot away
+       const pushDistance = circleRadius + blockingRadius - distanceToCursor;
+       const pushX = pushDistance * Math.cos(angle);
+       const pushY = pushDistance * Math.sin(angle);
+ 
+       // Update the dot's position to push it away from the cursor
+       dot.x += pushX;
+       dot.y += pushY;
+
+ } });
 
   // Add new dots if the number of dots is below a certain threshold
   if (dots.length < 1000) {
@@ -140,9 +164,9 @@ function moveDots() {
 // Start moving dots with a set interval for animation (60 frames per second)
 setInterval(moveDots, 1000 / 60); // Update every 1/60th of a second for smooth animation
 
-// Initial dot creation
+//Initial dot creation
 for (let i = 0; i < 1; i++) {
-  makedot(); // Create 100 initial dots
+ makedot(); // Create 100 initial dots
 }
 
 // Initial draw of the dots
