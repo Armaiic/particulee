@@ -4,9 +4,19 @@ import "./style.css";
 // Get a reference to the canvas element and set its dimensions
 const canvas = document.querySelector<HTMLCanvasElement>("#particules-canvas")!;
 const ctx = canvas.getContext("2d")!;
-const width = (canvas.width = window.innerWidth);
-const height = (canvas.height = window.innerHeight);
+let width = window.innerWidth;
+let height = window.innerHeight;
+const pixelRatio = window.devicePixelRatio || 1;
+
+// Adjust canvas size and scale for high DPI displays
+canvas.width = width * pixelRatio;
+canvas.height = height * pixelRatio;
+canvas.style.width = width + 'px';
+canvas.style.height = height + 'px';
+ctx.scale(pixelRatio, pixelRatio);
+
 canvas.style.background = "#000000";
+//let score = -120;
 
 // Define constants for circle properties
 const initialCircleRadius = 50; // Initial radius of the circles (can be adjusted)
@@ -40,6 +50,8 @@ function handleClick(event: MouseEvent) {
 
 // Function to create a new dot on the canvas
 function createDot() {
+  //drawScore();
+
   // Generate random coordinates for the dot within the canvas size
   const randomCoordinates = getRandomCoordinates();
   const { x, y } = randomCoordinates;
@@ -115,13 +127,20 @@ function getRandomVelocity(mass: number) {
 function getRandomHexColor(): string {
   let randomcolor = "#";
   const letters = "0123456789ABCDEF";
-
+  //score++;
   for (let i = 0; i < 6; i++) {
     randomcolor += letters[Math.floor(Math.random() * 16)];
   }
-
+  //drawScore();
   return randomcolor;
 }
+
+// function drawScore() {
+//   document.title = "Collision Score: " + score;
+//   ctx.font = "16px Arial";
+//   ctx.fillStyle = "#f00000";
+//   ctx.fillText("Score: " + score, 8, 20);
+// }
 
 // Function to handle elastic collisions between dots
 function handleElasticCollisions() {
@@ -163,10 +182,15 @@ function handleElasticCollisions() {
         // Adjust colors after collision (optional)
         dot1.color = getRandomHexColor();
         dot2.color = getRandomHexColor();
+
+        dot1.radius = Math.random() * 50 + 20;
+        dot2.radius = Math.random() * 50 + 20;
+        
+        }
       }
     }
   }
-}
+
 
 // Function to move the dots on the canvas
 function moveDots() {
@@ -180,11 +204,13 @@ function moveDots() {
       dot.vx *= -1;
       dot.color = getRandomHexColor();
       dot.x = Math.max(dot.radius, Math.min(width - dot.radius, dot.x));
+      dot.radius = Math.random() * 50 + 20;
     }
     if (dot.y - dot.radius < 0 || dot.y + dot.radius > height) {
       dot.vy *= -1;
       dot.color = getRandomHexColor();
       dot.y = Math.max(dot.radius, Math.min(height - dot.radius, dot.y));
+      dot.radius = Math.random() * 50 + 20;
     }
 
     if (dot.x < 0 || dot.x > width || dot.y < 0 || dot.y > height) {
@@ -194,12 +220,14 @@ function moveDots() {
 
   handleElasticCollisions();
 
-  if (dots.length < 100) {
+  if (dots.length < 120) {
     createDot();
   }
 
   dots.forEach((dot) => {
     ctx.fillStyle = dot.color;
+    ctx.shadowColor = 'white';
+    ctx.shadowBlur = 4
     ctx.beginPath();
     ctx.arc(dot.x, dot.y, dot.radius, 0, Math.PI * 2);
     ctx.fill();
@@ -210,13 +238,30 @@ function moveDots() {
   clickedDot = null;
 }
 
-// Start moving dots with a set interval for animation (60 frames per second)
-setInterval(moveDots, 1000 / 60);
+// Function to handle resizing of the canvas
+function handleResize() {
+  width = window.innerWidth;
+  height = window.innerHeight;
 
-// Initial dot creation
-for (let i = 0; i < 100; i++) {
-  createDot(); // Create 50 initial dots
+  // Adjust canvas size and scale for high DPI displays
+  canvas.width = width * pixelRatio;
+  canvas.height = height * pixelRatio;
+  canvas.style.width = width + 'px';
+  canvas.style.height = height + 'px';
+  ctx.scale(pixelRatio, pixelRatio);
+
+  // Redraw the dots after resizing
+  moveDots();
 }
 
-// Initial draw of the dots
-moveDots();
+// Add an event listener to handle window resizing
+window.addEventListener('resize', handleResize);
+
+// Function to animate the dots
+function animate() {
+  moveDots();
+  requestAnimationFrame(animate);
+}
+
+// Start the animation loop
+animate();
