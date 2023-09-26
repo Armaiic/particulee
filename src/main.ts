@@ -16,7 +16,6 @@ canvas.style.height = height + 'px';
 ctx.scale(pixelRatio, pixelRatio);
 
 canvas.style.background = "#000000";
-//let score = -120;
 
 // Define constants for circle properties
 const initialCircleRadius = 50; // Initial radius of the circles (can be adjusted)
@@ -30,19 +29,21 @@ function calculateDistance(x1: number, y1: number, x2: number, y2: number): numb
 // Variable to store the clicked dot
 let clickedDot: { x: number; y: number; radius: number; color: string; mass: number } | null = null;
 
-canvas.addEventListener("click", handleClick);
+canvas.addEventListener("click", handleClick);// listen the mouse evenement and call the function handleclick
 
+
+// function for calculate the mouse position and , allow to change size dot or color with mouse click
 function handleClick(event: MouseEvent) {
-  var x = event.clientX - canvas.getBoundingClientRect().left;
-  var y = event.clientY - canvas.getBoundingClientRect().top;
-
+  let x = event.clientX - canvas.getBoundingClientRect().left;
+  let y = event.clientY - canvas.getBoundingClientRect().top;
   for (const dot of dots) {
     // Check if the click is within the dot
-    var distance = calculateDistance(x, y, dot.x, dot.y);
+    let distance = calculateDistance(x, y, dot.x, dot.y);
     if (distance <= dot.radius) {
       clickedDot = dot;
       clickedDot.radius = Math.random() * 50 + 20; // Change the radius of the clicked dot
       clickedDot.color = getRandomHexColor();
+     
       break;
     }
   }
@@ -50,19 +51,12 @@ function handleClick(event: MouseEvent) {
 
 // Function to create a new dot on the canvas
 function createDot() {
-  //drawScore();
 
   // Generate random coordinates for the dot within the canvas size
   const randomCoordinates = getRandomCoordinates();
   const { x, y } = randomCoordinates;
-
-  // Generate random mass for the dot
   const mass = getRandomMass();
-
-  // Generate random velocity for the dot based on mass
   const { vx, vy } = getRandomVelocity(mass);
-
-  // Get a random color for the dot
   const color = getRandomHexColor();
 
   let isok = true;
@@ -119,7 +113,6 @@ function getRandomVelocity(mass: number) {
   // Calculate vx and vy based on speed and angle
   const vx = (speed / mass) * Math.cos(angle);
   const vy = (speed / mass) * Math.sin(angle);
-
   return { vx, vy };
 }
 
@@ -127,22 +120,15 @@ function getRandomVelocity(mass: number) {
 function getRandomHexColor(): string {
   let randomcolor = "#";
   const letters = "0123456789ABCDEF";
-  //score++;
+  
   for (let i = 0; i < 6; i++) {
     randomcolor += letters[Math.floor(Math.random() * 16)];
   }
-  //drawScore();
   return randomcolor;
 }
 
-// function drawScore() {
-//   document.title = "Collision Score: " + score;
-//   ctx.font = "16px Arial";
-//   ctx.fillStyle = "#f00000";
-//   ctx.fillText("Score: " + score, 8, 20);
-// }
 
-// Function to handle elastic collisions between dots
+  // function to  calculate the elasticcollision beetwen multiple dot  
 function handleElasticCollisions() {
   for (let i = 0; i < dots.length; i++) {
     for (let j = i + 1; j < dots.length; j++) {
@@ -157,6 +143,19 @@ function handleElasticCollisions() {
       const distance = calculateDistance(dot1.x, dot1.y, dot2.x, dot2.y);
 
       if (distance < dot1.radius + dot2.radius) {
+        // Calculate overlap distance
+        const overlap = dot1.radius + dot2.radius - distance;
+
+        // Calculate separation vector
+        const separationX = (overlap / 2) * (dx / distance);
+        const separationY = (overlap / 2) * (dy / distance);
+
+        // Move the dots apart along the separation vector
+        dot1.x -= separationX;
+        dot1.y -= separationY;
+        dot2.x += separationX;
+        dot2.y += separationY;
+
         // Calculate the unit normal and unit tangent vectors
         const nx = dx / distance; // Normal vector in x-direction
         const ny = dy / distance; // Normal vector in y-direction
@@ -185,11 +184,11 @@ function handleElasticCollisions() {
 
         dot1.radius = Math.random() * 50 + 20;
         dot2.radius = Math.random() * 50 + 20;
-        
-        }
       }
     }
   }
+}
+
 
 
 // Function to move the dots on the canvas
@@ -219,11 +218,11 @@ function moveDots() {
   });
 
   handleElasticCollisions();
-
+   // call the createdot function if le number of dot in canevas is less than dotlimit
   if (dots.length < 120) {
-    createDot();
+   createDot();
   }
-
+   // use a foreach for create dot  and stock value in dots array
   dots.forEach((dot) => {
     ctx.fillStyle = dot.color;
     ctx.shadowColor = 'white';
