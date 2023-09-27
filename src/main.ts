@@ -18,8 +18,7 @@ ctx.scale(pixelRatio, pixelRatio);
 canvas.style.background = "#000000";
 
 // Define constants for circle properties
-const initialCircleRadius = 50; // Initial radius of the circles (can be adjusted)
-const savedistance = initialCircleRadius * 4; // Minimum distance between dots
+const initialCircleRadius = 20; // Initial radius of the circles (can be adjusted)
 
 // Function to calculate distance between two points
 function calculateDistance(x1: number, y1: number, x2: number, y2: number): number {
@@ -27,12 +26,11 @@ function calculateDistance(x1: number, y1: number, x2: number, y2: number): numb
 }
 
 // Variable to store the clicked dot
-let clickedDot: { x: number; y: number; radius: number; color: string; mass: number } | null = null;
+let clickedDot: { x: number; y: number; radius: number; color: string; mass: number; attractionForce: number } | null = null;
 
-canvas.addEventListener("click", handleClick);// listen the mouse evenement and call the function handleclick
+canvas.addEventListener("click", handleClick);
 
-
-// function for calculate the mouse position and , allow to change size dot or color with mouse click
+// Function for calculating the mouse position and allowing to change dot size or color with a mouse click
 function handleClick(event: MouseEvent) {
   let x = event.clientX - canvas.getBoundingClientRect().left;
   let y = event.clientY - canvas.getBoundingClientRect().top;
@@ -43,7 +41,7 @@ function handleClick(event: MouseEvent) {
       clickedDot = dot;
       clickedDot.radius = Math.random() * 50 + 20; // Change the radius of the clicked dot
       clickedDot.color = getRandomHexColor();
-     
+
       break;
     }
   }
@@ -51,13 +49,15 @@ function handleClick(event: MouseEvent) {
 
 // Function to create a new dot on the canvas
 function createDot() {
-
   // Generate random coordinates for the dot within the canvas size
   const randomCoordinates = getRandomCoordinates();
   const { x, y } = randomCoordinates;
   const mass = getRandomMass();
+  const size = initialCircleRadius + Math.random() * 30; // Random size
   const { vx, vy } = getRandomVelocity(mass);
   const color = getRandomHexColor();
+  const attractionForce = Math.random() * 0.2; // Random attraction force
+  const gravity = 0.2; // Gravity force
 
   let isok = true;
 
@@ -67,7 +67,7 @@ function createDot() {
     const distance = calculateDistance(x, y, dot.x, dot.y);
 
     // Check if the new dot is too close to others
-    if (distance < savedistance) {
+    if (distance < size + dot.radius) {
       isok = false;
       break;
     }
@@ -75,12 +75,12 @@ function createDot() {
 
   // If the dot is not too close to others, add it to the array
   if (isok) {
-    dots.push({ x, y, vx, vy, radius: initialCircleRadius, color, mass });
+    dots.push({ x, y, vx, vy, radius: size, color, mass, attractionForce,gravity });
   }
 }
 
 // Array to store the dots and their positions
-const dots: { x: number; y: number; vx: number; vy: number; radius: number; color: string; mass: number }[] = [];
+const dots: { x: number; y: number; vx: number; vy: number; radius: number; color: string; mass: number;gravity:number; attractionForce: number }[] = [];
 
 // Function to generate random x and y coordinates within the canvas size
 function getRandomCoordinates() {
@@ -93,7 +93,7 @@ function getRandomCoordinates() {
 // Function to generate a random mass for the dots
 function getRandomMass() {
   // Define the range of random mass values
-  const minMass = 0.5;
+  const minMass = 1;
   const maxMass = 5;
 
   // Generate a random mass value within the range
@@ -103,8 +103,8 @@ function getRandomMass() {
 // Function to generate random velocity for the dots based on mass
 function getRandomVelocity(mass: number) {
   // Define the range of random speeds for the dots based on mass
-  const minSpeed = 2;
-  const maxSpeed = 10;
+  const minSpeed = 1;
+  const maxSpeed = 5;
 
   // Generate random velocities with random directions (positive or negative)
   const speed = Math.random() * (maxSpeed - minSpeed) + minSpeed;
@@ -120,15 +120,14 @@ function getRandomVelocity(mass: number) {
 function getRandomHexColor(): string {
   let randomcolor = "#";
   const letters = "0123456789ABCDEF";
-  
+
   for (let i = 0; i < 6; i++) {
     randomcolor += letters[Math.floor(Math.random() * 16)];
   }
   return randomcolor;
 }
 
-
-  // function to  calculate the elasticcollision beetwen multiple dot  
+// Function to calculate the elastic collision between multiple dots
 function handleElasticCollisions() {
   for (let i = 0; i < dots.length; i++) {
     for (let j = i + 1; j < dots.length; j++) {
@@ -157,10 +156,10 @@ function handleElasticCollisions() {
         dot2.y += separationY;
 
         // Calculate the unit normal and unit tangent vectors
-        const nx = dx / distance; // Normal vector in x-direction
-        const ny = dy / distance; // Normal vector in y-direction
-        const tx = -ny; // Tangent vector in x-direction
-        const ty = nx; // Tangent vector in y-direction
+        const nx = dx / distance; // Normal vector in the x-direction
+        const ny = dy / distance; // Normal vector in the y-direction
+        const tx = -ny; // Tangent vector in the x-direction
+        const ty = nx; // Tangent vector in the y-direction
 
         // Calculate dot products of velocities with normal and tangent vectors
         const dot1Normal = dot1.vx * nx + dot1.vy * ny; // Velocity of dot1 along the normal direction
@@ -189,8 +188,6 @@ function handleElasticCollisions() {
   }
 }
 
-
-
 // Function to move the dots on the canvas
 function moveDots() {
   ctx.clearRect(0, 0, width, height);
@@ -218,11 +215,31 @@ function moveDots() {
   });
 
   handleElasticCollisions();
-   // call the createdot function if le number of dot in canevas is less than dotlimit
-  if (dots.length < 120) {
-   createDot();
+
+  // Calculate attraction forces between particles
+  dots.forEach((dot1, i) => {
+    dots.forEach((dot2, j) => {
+      if (i !== j) {
+        const dx = dot2.x - dot1.x;
+        const dy = dot2.y - dot1.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        const attractionForce = (dot1.attractionForce * dot2.attractionForce) / (distance * distance) - (dot1.gravity*dot2.gravity);
+
+        dot1.vx += (attractionForce * dx) / distance;
+        dot1.vy += (attractionForce * dy) / distance;
+        dot2.vx -= (attractionForce * dx) / distance;
+        dot2.vy -= (attractionForce * dy) / distance;
+      }
+    });
+  });
+
+  // Call the createDot function if the number of dots on the canvas is less than a certain limit
+  if (dots.length < 10) {
+    createDot();
   }
-   // use a foreach for create dot  and stock value in dots array
+
+  // Use a forEach loop to create dots and store values in the dots array
   dots.forEach((dot) => {
     ctx.fillStyle = dot.color;
     ctx.shadowColor = 'white';
